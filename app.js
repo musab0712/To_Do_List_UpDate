@@ -11,7 +11,7 @@ app.use(express.static("public"));
 
 main().catch(err => console.log(err));
 async function main() {
-    await mongoose.connect("mongodb://127.0.0.1:27017/ToDoListDB");
+    await mongoose.connect("mongodb+srv://musabhassan1999:Hassan123@m-hassan.iva9vij.mongodb.net/ToDoListDB");
 } 
 
 const itemSchema = new mongoose.Schema({
@@ -34,13 +34,6 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-const listSchema = new mongoose.Schema({
-    name : String,
-    items : [itemSchema]
-});
-
-const List = mongoose.model('List', listSchema);
-
 app.get("/", function(req, res){
     let day = date.getDate();
     Item.find({}, function(err, getItems){
@@ -55,25 +48,6 @@ app.get("/", function(req, res){
         }
         else
             res.render("list", {ListTitle : day, newListItems : getItems});
-    })
-});
-
-app.get("/:customListName", function(req, res){
-    const customListName = req.params.customListName;
-    List.findOne({name : customListName}, function(err, foundListItem){
-        if(!err){
-            if(!foundListItem){
-                const list = new List({
-                    name : customListName,
-                    items : defaultItems
-                });
-                list.save();
-                res.redirect("/" + customListName);
-            }
-            else{
-                res.render("list", {ListTitle : foundListItem.name, newListItems : foundListItem.items});
-            }
-        }
     })
 });
 
