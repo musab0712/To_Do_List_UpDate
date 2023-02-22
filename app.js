@@ -21,20 +21,25 @@ const itemSchema = new mongoose.Schema({
 const Item = mongoose.model('Item', itemSchema);
 
 const item1 = new Item({
-    name : "Musab"
+    name : "Welcome to your ToDoList"
 });
 
 const item2 = new Item({
-    name : "Hassan"
+    name : "Hit + for add new Item"
 });
 
 const item3 = new Item({
-    name : "Arman"
+    name : "<- Hit for delete Item"
 });
 
 const defaultItems = [item1, item2, item3];
 
+const listSchema = new mongoose.Schema({
+    name : String,
+    items : [itemSchema]
+});
 
+const List = mongoose.model('List', listSchema);
 
 app.get("/", function(req, res){
     let day = date.getDate();
@@ -53,17 +58,44 @@ app.get("/", function(req, res){
     })
 });
 
-// app.post("/", function(req, res) {
-//     let item = req.body.newItem;
-//     if(req.body.button === "Work"){
-//         works.push(item);
-//         res.redirect("/work");
-//     }else{
-//         items.push(item);
-//         res.redirect("/");
-//     }
-   
-// } );
+app.get("/:customListName", function(req, res){
+    const customListName = req.params.customListName;
+    List.findOne({name : customListName}, function(err, foundListItem){
+        if(!err){
+            if(!foundListItem){
+                const list = new List({
+                    name : customListName,
+                    items : defaultItems
+                });
+                list.save();
+                res.redirect("/" + customListName);
+            }
+            else{
+                res.render("list", {ListTitle : foundListItem.name, newListItems : foundListItem.items});
+            }
+        }
+    })
+});
+
+app.post("/", function(req, res) {
+    let newData = req.body.newItem;
+    const item = new Item({
+        name : newData
+    });
+    item.save();
+    res.redirect("/");
+} );
+
+app.post("/delete", function(req, res){
+    let checkedItemId = req.body.checkbox;
+    Item.findByIdAndRemove(checkedItemId, function(err){
+        if(err)
+            console.log(err);
+        else
+            console.log("Successfully removed from db");
+    });
+    res.redirect("/");
+})
 
 
 app.listen(3000, function(){
